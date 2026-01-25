@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  latency-tracker:
+    build: .
+    container_name: latency-tracker
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data # Mount a dedicated data folder
+    # NET_RAW is required for ping to work without root in some environments
+    cap_add:
+      - NET_RAW
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_PATH=/app/data/latency.db
