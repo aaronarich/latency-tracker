@@ -46,7 +46,7 @@ def perform_pings():
     cleanup_old_records(days=30)
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(perform_pings, 'interval', minutes=1)
+scheduler.add_job(perform_pings, 'interval', seconds=30)
 
 @app.on_event("startup")
 def on_startup():
