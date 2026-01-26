@@ -1,14 +1,40 @@
 import subprocess
 import re
 import platform
+import dns.resolver
+import ipaddress
+
+def resolve_domain(domain: str) -> str:
+    """
+    Resolves a domain to an IP address using Google DNS (8.8.8.8).
+    Returns the original string if it is already an IP or if resolution fails.
+    """
+    # Check if it's already an IP address
+    try:
+        ipaddress.ip_address(domain)
+        return domain
+    except ValueError:
+        pass
+
+    try:
+        resolver = dns.resolver.Resolver()
+        resolver.nameservers = ['8.8.8.8']
+        answer = resolver.resolve(domain, 'A')
+        return answer[0].to_text()
+    except Exception as e:
+        print(f"DNS resolution failed for {domain} via 8.8.8.8: {e}")
+        return domain
 
 def ping_domain(domain: str) -> float:
     """
     Pings a domain and returns the average latency in milliseconds.
     Returns -1.0 if the ping fails or can't be parsed.
     """
+    target = resolve_domain(domain)
+    print(f"Pinging {domain} ({target})...")
+
     param = '-c' if platform.system().lower() != 'windows' else '-n'
-    command = ['ping', param, '1', domain]
+    command = ['ping', param, '1', target]
     
     try:
         output = subprocess.check_output(command, stderr=subprocess.STDOUT, universal_newlines=True)
@@ -18,7 +44,7 @@ def ping_domain(domain: str) -> float:
         if match:
             return float(match.group(1))
     except Exception as e:
-        print(f"Error pinging {domain}: {e}")
+        print(f"Error pinging {domain} ({target}): {e}")
     
     return -1.0
 
