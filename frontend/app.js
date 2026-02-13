@@ -5,7 +5,7 @@
 
 // Configuration
 const API_BASE_URL = ''; // Empty for relative calls when served by the same backend
-const REFRESH_INTERVAL_MS = 30000; // 30 seconds
+const REFRESH_INTERVAL_MS = 300000; // 5 minutes
 // State
 let latencyChart = null;
 let currentTimeRangeHours = 24;

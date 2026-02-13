@@ -1,13 +1,18 @@
 from datetime import datetime, timedelta
 from typing import Optional
 from sqlmodel import Field, SQLModel, create_engine, Session, select
+from sqlalchemy import Index, delete
 import os
 
 class LatencyRecord(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     domain: str = Field(index=True)
     latency_ms: float
-    timestamp: datetime = Field(default_factory=datetime.utcnow, index=True)
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+    __table_args__ = (
+        Index("ix_latencyrecord_timestamp_domain", "timestamp", "domain"),
+    )
 
 class TrackedDomain(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -38,10 +43,8 @@ def get_latency_data(days: int = 30):
 def cleanup_old_records(days: int = 30):
     cutoff = datetime.utcnow() - timedelta(days=days)
     with Session(engine) as session:
-        statement = select(LatencyRecord).where(LatencyRecord.timestamp < cutoff)
-        results = session.exec(statement)
-        for record in results:
-            session.delete(record)
+        statement = delete(LatencyRecord).where(LatencyRecord.timestamp < cutoff)
+        session.exec(statement)
         session.commit()
 
 def get_tracked_domains():

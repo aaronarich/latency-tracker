@@ -40,13 +40,14 @@ def perform_pings():
         latency = ping_domain(domain)
         if latency != -1.0:
             add_latency_record(domain, latency)
-    
-    # Also perform cleanup once a day (simplified: check on every ping cycle but we could optimize)
-    # For now, let's just do it here to keep it simple.
+
+def perform_cleanup():
+    print(f"[{datetime.utcnow()}] Running database cleanup...")
     cleanup_old_records(days=30)
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(perform_pings, 'interval', seconds=30)
+scheduler.add_job(perform_pings, 'interval', minutes=30)
+scheduler.add_job(perform_cleanup, 'interval', days=1)
 
 @app.on_event("startup")
 def on_startup():
